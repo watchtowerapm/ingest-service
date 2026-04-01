@@ -24,15 +24,17 @@ type Writer struct {
 }
 
 // New dials both Redis addresses and verifies connectivity with a short ping.
-func New(bufferAddr, cacheAddr string) (*Writer, error) {
+func New(bufferAddr, bufferPass, cacheAddr, cachePass string) (*Writer, error) {
 	buffer := redis.NewClient(&redis.Options{
 		Addr:         bufferAddr,
+		Password:     bufferPass,
 		DialTimeout:  5 * time.Second,
 		ReadTimeout:  3 * time.Second,
 		WriteTimeout: 3 * time.Second,
 	})
 	cache := redis.NewClient(&redis.Options{
 		Addr:         cacheAddr,
+		Password:     cachePass,
 		DialTimeout:  5 * time.Second,
 		ReadTimeout:  3 * time.Second,
 		WriteTimeout: 3 * time.Second,

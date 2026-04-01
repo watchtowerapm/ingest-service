@@ -22,10 +22,12 @@ func main() {
 
 	port := envOr("PORT", "3000")
 	bufferAddr := envOr("REDIS_BUFFER_ADDR", "localhost:6379")
+	bufferPass := envOr("REDIS_BUFFER_PASSWORD", "")
 	cacheAddr := envOr("REDIS_CACHE_ADDR", "localhost:6380")
+	cachePass := envOr("REDIS_CACHE_PASSWORD", "")
 	maxIngestBody := envInt64("INGEST_MAX_BODY_BYTES", 10<<20)
 
-	rw, err := rediswriter.New(bufferAddr, cacheAddr)
+	rw, err := rediswriter.New(bufferAddr, bufferPass, cacheAddr, cachePass)
 	if err != nil {
 		slog.Error("failed to connect to redis", "error", err)
 		os.Exit(1)
