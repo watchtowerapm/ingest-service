@@ -1,0 +1,25 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/ingest ./cmd/server"
+  bin = "./tmp/ingest"
+  full_bin = "./tmp/ingest"
+  include_ext = ["go"]
+  exclude_dir = ["docker", "vendor"]
+  delay = 500
+  kill_delay = "1s"
+  rerun = false
+
+[log]
+  time = true
+  main_only = false
+
+[color]
+  main = "magenta"
+  watcher = "cyan"
+  build = "yellow"
+  runner = "green"
+
+[misc]
+  clean_on_exit = true
