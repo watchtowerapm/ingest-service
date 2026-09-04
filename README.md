@@ -4,7 +4,7 @@ The telemetry ingest service for [Watchtower APM](https://github.com/watchtowera
 
 [![CI](https://github.com/watchtowerapm/ingest-service/actions/workflows/ci.yml/badge.svg?branch=1.x)](https://github.com/watchtowerapm/ingest-service/actions/workflows/ci.yml)
 [![Release](https://github.com/watchtowerapm/ingest-service/actions/workflows/release.yml/badge.svg)](https://github.com/watchtowerapm/ingest-service/actions/workflows/release.yml)
-[![Go Version](https://img.shields.io/badge/go-1.23-00ADD8?logo=go)](go.mod)
+[![Go Version](https://img.shields.io/badge/go-1.27-00ADD8?logo=go)](go.mod)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ---
@@ -105,6 +105,8 @@ All configuration is via environment variables.
 | `PORT` | `3000` | HTTP listen port |
 | `REDIS_BUFFER_ADDR` | `localhost:6379` | Redis Stream host (buffer) |
 | `REDIS_CACHE_ADDR` | `localhost:6380` | Redis token cache host |
+| `REDIS_BUFFER_PASSWORD` | _(empty)_ | Redis Stream password |
+| `REDIS_CACHE_PASSWORD` | _(empty)_ | Redis token cache password |
 | `INGEST_MAX_BODY_BYTES` | `10485760` (10 MiB) | Max decompressed payload size |
 
 ---
@@ -125,7 +127,7 @@ docker pull ghcr.io/watchtowerapm/ingest-service:1
 
 ## Development
 
-**Prerequisites:** Go 1.23+, Docker, Make.
+**Prerequisites:** Go 1.27+, Docker, Make.
 
 ```bash
 # Start all dependencies (redis-buffer, redis-cache) + ingest with hot reload
@@ -148,6 +150,7 @@ The dev Docker target uses [Air](https://github.com/air-verse/air) for hot reloa
 ingest-service/
 ├── cmd/server/        # main entrypoint
 ├── internal/
+│   ├── config/        # environment helpers
 │   ├── handler/       # HTTP handlers (ingest, health)
 │   └── rediswriter/   # Redis auth + stream writer
 └── docker/
@@ -163,7 +166,10 @@ git tag v1.2.3
 git push origin v1.2.3
 ```
 
-The [Release workflow](.github/workflows/release.yml) builds multi-arch images, pushes them to GHCR, and creates a GitHub Release automatically.
+The [CI workflow](.github/workflows/ci.yml) runs `go vet`, golangci-lint, and `go test -race` on `1.x` and `develop`. Handler tests do not need Redis.
+
+Images for production are built from `1.x` tags, not `develop`.
+
 
 ---
 
