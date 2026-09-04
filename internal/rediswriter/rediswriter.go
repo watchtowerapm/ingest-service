@@ -12,7 +12,9 @@ import (
 const (
 	telemetryStream = "telemetry:events"
 	maxStreamLen    = 1_000_000
-	tokenKeyPrefix  = "agent_token:"
+	// Must match platform AgentAuthController on the `agent_tokens` Redis
+	// connection (no Laravel REDIS_PREFIX). Prefixed keys 401 every ingest.
+	tokenKeyPrefix = "agent_token:"
 )
 
 var ErrUnauthorized = errors.New("unauthorized: token not found or expired")
