@@ -6,12 +6,19 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
+	"github.com/watchtower/ingest-service/internal/config"
 	"github.com/watchtower/ingest-service/internal/handler"
 	"github.com/watchtower/ingest-service/internal/rediswriter"
+)
+
+// Set by Go ldflags at build time.
+var (
+	version   = "dev"
+	buildDate = ""
+	vcsRef    = ""
 )
 
 func main() {
@@ -20,12 +27,12 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	port := envOr("PORT", "3000")
-	bufferAddr := envOr("REDIS_BUFFER_ADDR", "localhost:6379")
-	bufferPass := envOr("REDIS_BUFFER_PASSWORD", "")
-	cacheAddr := envOr("REDIS_CACHE_ADDR", "localhost:6380")
-	cachePass := envOr("REDIS_CACHE_PASSWORD", "")
-	maxIngestBody := envInt64("INGEST_MAX_BODY_BYTES", 10<<20)
+	port := config.EnvOr("PORT", "3000")
+	bufferAddr := config.EnvOr("REDIS_BUFFER_ADDR", "localhost:6379")
+	bufferPass := config.EnvOr("REDIS_BUFFER_PASSWORD", "")
+	cacheAddr := config.EnvOr("REDIS_CACHE_ADDR", "localhost:6380")
+	cachePass := config.EnvOr("REDIS_CACHE_PASSWORD", "")
+	maxIngestBody := config.EnvInt64("INGEST_MAX_BODY_BYTES", 10<<20)
 
 	rw, err := rediswriter.New(bufferAddr, bufferPass, cacheAddr, cachePass)
 	if err != nil {
@@ -47,7 +54,13 @@ func main() {
 	}
 
 	go func() {
-		slog.Info("ingest-service starting", "port", port, "max_ingest_body_bytes", maxIngestBody)
+		slog.Info("ingest-service starting",
+			"port", port,
+			"max_ingest_body_bytes", maxIngestBody,
+			"version", version,
+			"build_date", buildDate,
+			"vcs_ref", vcsRef,
+		)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			slog.Error("server error", "error", err)
 			os.Exit(1)
@@ -64,20 +77,4 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil {
 		slog.Error("forced shutdown", "error", err)
 	}
-}
-
-func envOr(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
-
-func envInt64(key string, fallback int64) int64 {
-	if v := os.Getenv(key); v != "" {
-		if n, err := strconv.ParseInt(v, 10, 64); err == nil && n > 0 {
-			return n
-		}
-	}
-	return fallback
 }
